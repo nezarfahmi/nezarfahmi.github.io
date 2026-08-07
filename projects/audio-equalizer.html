@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="description"
+    content="Analog audio equalizer and amplifier designed by Nezar Fahmi."
+  >
+  <title>Analog Audio Equalizer and Amplifier — Nezar Fahmi</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+<header>
+  <div class="nav-inner">
+    <a href="../index.html" class="logo">Nezar Fahmi</a>
+
+    <nav aria-label="Primary navigation">
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#projects">Projects</a>
+      <a href="../assets/resume.pdf" target="_blank">Resume</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <article class="project-detail">
+    <a class="back-link" href="../index.html#projects">
+      ← Back to projects
+    </a>
+
+    <h1>Analog Audio Equalizer and Amplifier</h1>
+
+    <p class="project-meta">
+      Analog Design · LTspice · Laboratory Project · 2026
+    </p>
+
+    <div class="project-facts">
+      <div>
+        <span>Filters</span>
+        <strong>Three adjustable frequency bands</strong>
+      </div>
+
+      <div>
+        <span>Amplifiers</span>
+        <strong>LM324 and LM386</strong>
+      </div>
+
+      <div>
+        <span>Output</span>
+        <strong>&gt;400 mW into 8 Ω</strong>
+      </div>
+    </div>
+
+    <div class="gallery">
+      <figure>
+        <img
+          src="images/audio-equalizer-circuit.svg"
+          alt="Audio equalizer circuit placeholder"
+        >
+        <figcaption>Assembled analog circuit</figcaption>
+      </figure>
+
+      <figure>
+        <img
+          src="images/audio-equalizer-schematic.svg"
+          alt="Audio equalizer schematic placeholder"
+        >
+        <figcaption>Equalizer and amplifier schematic</figcaption>
+      </figure>
+
+      <figure>
+        <img
+          src="images/audio-equalizer-waveform.svg"
+          alt="Audio equalizer waveform placeholder"
+        >
+        <figcaption>Oscilloscope validation</figcaption>
+      </figure>
+    </div>
+
+    <h2>Overview</h2>
+    <p>
+      A three-band analog audio equalizer using RC filter networks for low,
+      mid, and high frequency bands. The measured −3 dB cutoff frequencies
+      were within 10% of their theoretical values.
+    </p>
+
+    <h2>Amplification and testing</h2>
+    <p>
+      An LM324 summing stage combined the independently adjustable bands,
+      while an LM386 power amplifier drove an 8 Ω speaker at greater than
+      400 mW. The full circuit was simulated in LTspice and validated using
+      oscilloscope measurements with less than 15 mV ripple.
+    </p>
+  </article>
+</main>
+
+<footer>
+  <p>&copy; 2026 Nezar Fahmi</p>
+</footer>
+</body>
+</html>

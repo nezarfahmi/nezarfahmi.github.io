@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="description"
+    content="Engine Controller Flash Daughterboard designed by Nezar Fahmi."
+  >
+  <title>Engine Controller Flash Daughterboard — Nezar Fahmi</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+<header>
+  <div class="nav-inner">
+    <a href="../index.html" class="logo">Nezar Fahmi</a>
+
+    <nav aria-label="Primary navigation">
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#projects">Projects</a>
+      <a href="../assets/resume.pdf" target="_blank">Resume</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <article class="project-detail">
+    <a class="back-link" href="../index.html#projects">
+      ← Back to projects
+    </a>
+
+    <h1>Engine Controller Flash Daughterboard</h1>
+
+    <div class="gallery">
+      <figure>
+        <img
+          src="images/flash-daughterboard/flash-daughterboard-schematic.png"
+          alt="Engine controller flash daughterboard schematic"
+        >
+        <figcaption>QSPI flash schematic</figcaption>
+      </figure>
+
+      <figure>
+        <img
+          src="images/flash-daughterboard/flash-daughterboard-layout.png"
+          alt="Engine controller flash daughterboard PCB layout"
+        >
+        <figcaption>PCB layout</figcaption>
+      </figure>
+
+      <figure>
+        <img
+          src="images/flash-daughterboard/flash-daughterboard-render.png"
+          alt="Engine controller flash daughterboard 3D layout visualization"
+        >
+        <figcaption>3D layout visualization</figcaption>
+      </figure>
+    </div>
+
+    <h2>Overview</h2>
+
+    <p>
+      This project is a compact two-layer daughterboard designed to expand the
+      nonvolatile storage available to Purdue Space Program's engine controller.
+      The board integrates a 512-Mbit QSPI flash device through a board-to-board
+      connector carrying power, ground, clock, chip-select, and four
+      bidirectional data signals.
+    </p>
+
+    <h2>More details</h2>
+
+    <p>
+      The design uses an ISSI IS25LP512M-series flash memory device with local
+      decoupling and short, direct routing between the connector and memory
+      interface. Clock and QSPI data lines were kept compact and referenced to
+      a continuous ground plane, while the power path was widened and supported
+      with nearby ground stitching. The schematic and two-layer PCB were
+      completed in Altium Designer and checked through ERC and DRC before
+      handoff.
+    </p>
+  </article>
+</main>
+
+<footer>
+  <p>&copy; 2026 Nezar Fahmi</p>
+</footer>
+</body>
+</html>

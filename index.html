@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="description"
+    content="Portfolio of Nezar Fahmi, a Purdue Electrical Engineering student focused on PCB, digital, analog, and embedded hardware design."
+  >
+
+  <title>Nezar Fahmi — Portfolio</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .hero {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 48px;
+      flex-wrap: wrap;
+    }
+
+    .hero-text {
+      flex: 1 1 400px;
+      min-width: 0;
+    }
+
+    .hero-photo {
+      flex: 0 0 auto;
+      width: 340px;
+      height: 340px;
+      margin-top: 20px;
+    }
+
+    .hero-photo img {
+      width: 340px;
+      height: 340px;
+      object-fit: cover;
+      border-radius: 8px;
+      display: block;
+    }
+  </style>
+
+  <script defer>
+    document.addEventListener("DOMContentLoaded", () => {
+      const introItems = [
+        { element: document.querySelector("header"), delay: 30 },
+        { element: document.querySelector(".logo"), delay: 90 },
+        { element: document.querySelector("nav"), delay: 150 },
+        { element: document.querySelector(".hero h1"), delay: 220 },
+        { element: document.querySelector(".tagline"), delay: 300 },
+        { element: document.querySelector(".bio"), delay: 380 },
+        { element: document.querySelector(".about-links"), delay: 470 },
+        { element: document.querySelector(".hero-photo"), delay: 300 }
+      ].filter((item) => item.element);
+
+      introItems.forEach(({ element, delay }) => {
+        element.style.setProperty("--reveal-delay", `${delay}ms`);
+      });
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          introItems.forEach(({ element }) => {
+            element.classList.add("is-visible");
+          });
+        });
+      });
+
+      const scrollItems = [
+        document.querySelector("#projects > h2"),
+        ...document.querySelectorAll(".project-category"),
+        ...document.querySelectorAll(".project-card"),
+        document.querySelector("#contact")
+      ].filter(Boolean);
+
+      if (!("IntersectionObserver" in window)) {
+        scrollItems.forEach((item) => item.classList.add("is-visible"));
+        return;
+      }
+
+      const observer = new IntersectionObserver(
+        (entries, activeObserver) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) {
+              return;
+            }
+
+            entry.target.classList.add("is-visible");
+            activeObserver.unobserve(entry.target);
+          });
+        },
+        {
+          threshold: 0.08,
+          rootMargin: "0px 0px -35px 0px"
+        }
+      );
+
+      scrollItems.forEach((item) => observer.observe(item));
+    });
+  </script>
+</head>
+
+<body>
+<header class="reveal">
+  <div class="nav-inner">
+    <a href="#" class="logo reveal">Nezar Fahmi</a>
+
+    <nav class="reveal">
+      <a href="#about">About</a>
+      <a href="#projects">Projects</a>
+      <a href="assets/resume.pdf" target="_blank">Resume</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section id="about" class="hero">
+    <div class="hero-text">
+      <h1 class="reveal">Nezar Fahmi</h1>
+
+      <p class="tagline reveal">
+        Electrical &amp; Computer Engineering @ Purdue University
+      </p>
+
+      <p class="bio reveal">
+        Hello! I'm an Electrical Engineering student at Purdue University
+        interested in PCB design, embedded systems, analog hardware, and
+        digital ASIC development. Through research, engineering teams,
+        coursework, and personal projects, I enjoy taking hardware from an
+        initial architecture through schematic capture, layout, verification,
+        and testing. Outside of engineering, I enjoy distance running,
+        photography, listening to music, and building side projects.
+      </p>
+
+      <p class="about-links reveal">
+        Westfield, Indiana
+        &nbsp;·&nbsp;
+        <a href="mailto:nfahmi@purdue.edu">Email</a>
+        &nbsp;·&nbsp;
+        <a
+          href="https://www.linkedin.com/in/nezar-fahmi"
+          target="_blank"
+          rel="noopener"
+        >
+          LinkedIn
+        </a>
+        &nbsp;·&nbsp;
+        <a
+          href="https://github.com/nezarfahmi"
+          target="_blank"
+          rel="noopener"
+        >
+          GitHub
+        </a>
+      </p>
+    </div>
+
+    <div class="hero-photo reveal">
+      <img
+        src="projects/images/headshot-placeholder.svg"
+        alt="Headshot of Nezar Fahmi"
+      >
+    </div>
+  </section>
+
+  <section id="projects" class="projects">
+    <h2 class="reveal">Projects</h2>
+
+    <h3 class="project-category reveal">PCB Projects</h3>
+
+    <div class="project-grid">
+      <a
+        class="project-card reveal"
+        href="projects/acoustic-guitar-tuner.html"
+      >
+        <h4>Acoustic Guitar Tuner PCB</h4>
+        <p class="project-meta"></p>
+        <span class="view-link">View project →</span>
+      </a>
+
+      <a
+        class="project-card reveal"
+        href="projects/arduino-uno.html"
+      >
+        <h4>Arduino-Compatible Development Board</h4>
+        <p class="project-meta">
+          Purdue System-on-Chip Extension Technologies
+        </p>
+        <span class="view-link">View project →</span>
+      </a>
+
+      <a
+        class="project-card reveal"
+        href="projects/flash-daughterboard.html"
+      >
+        <h4>Engine Controller Flash Daughterboard</h4>
+        <p class="project-meta">Purdue Space Program</p>
+        <span class="view-link">View project →</span>
+      </a>
+    </div>
+
+    <h3 class="project-category reveal">Digital Design Projects</h3>
+
+    <div class="project-grid">
+      <a
+        class="project-card reveal"
+        href="projects/atari-asteroids.html"
+      >
+        <h4>Atari Asteroids ASIC</h4>
+        <p class="project-meta">
+          Purdue System-on-Chip Extension Technologies
+        </p>
+        <span class="view-link">View project →</span>
+      </a>
+    </div>
+
+    <h3 class="project-category reveal">Analog Projects</h3>
+
+    <div class="project-grid">
+      <a
+        class="project-card reveal"
+        href="projects/audio-equalizer.html"
+      >
+        <h4>Analog Audio Equalizer and Amplifier</h4>
+        <p class="project-meta">Purdue University</p>
+        <span class="view-link">View project →</span>
+      </a>
+    </div>
+  </section>
+
+  <section id="contact" class="contact reveal">
+    <h2>Contact</h2>
+
+    <p>
+      <a href="mailto:nfahmi@purdue.edu">
+        nfahmi@purdue.edu
+      </a>
+    </p>
+
+    <p>
+      <a
+        href="https://github.com/nezarfahmi"
+        target="_blank"
+        rel="noopener"
+      >
+        GitHub
+      </a>
+
+      &nbsp;·&nbsp;
+
+      <a
+        href="https://www.linkedin.com/in/nezar-fahmi"
+        target="_blank"
+        rel="noopener"
+      >
+        LinkedIn
+      </a>
+    </p>
+  </section>
+</main>
+
+<footer>
+  <p>&copy; 2026 Nezar Fahmi</p>
+</footer>
+</body>
+</html>
