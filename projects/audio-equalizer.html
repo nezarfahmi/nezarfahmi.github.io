@@ -5,99 +5,305 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta
     name="description"
-    content="Analog audio equalizer and amplifier designed by Nezar Fahmi."
+    content="Analog Audio Equalizer and Amplifier project by Nezar Fahmi."
   >
   <title>Analog Audio Equalizer and Amplifier — Nezar Fahmi</title>
+
   <link rel="stylesheet" href="../style.css">
+
+  <style>
+    .report-wrap {
+      margin: 1.5rem 0 2rem;
+    }
+
+    .report-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.85rem;
+      font-size: 0.9rem;
+    }
+
+    .report-frame {
+      width: 100%;
+      height: 680px;
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
+    .fra-slideshow {
+      width: 100%;
+    }
+
+    .fra-stage {
+      width: 100%;
+    }
+
+    .fra-stage img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: contain;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: block;
+      padding: 0.5rem;
+      transition: opacity 0.22s ease;
+    }
+
+    .fra-meta {
+      margin-top: 0.45rem;
+      text-align: center;
+    }
+
+    .fra-caption {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .fra-subtext {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin: 0.35rem auto 0;
+      max-width: 42ch;
+      line-height: 1.45;
+    }
+
+    .fra-tabs {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.85rem;
+    }
+
+    .fra-tab {
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text);
+      padding: 0.42rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      line-height: 1;
+      cursor: pointer;
+      transition:
+        border-color 0.15s ease,
+        color 0.15s ease,
+        background 0.15s ease,
+        transform 0.15s ease;
+    }
+
+    .fra-tab:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .fra-tab.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(37, 99, 235, 0.06);
+      font-weight: 600;
+    }
+
+    @media (max-width: 640px) {
+      .report-frame {
+        height: 520px;
+      }
+    }
+  </style>
 </head>
 
 <body>
-<header>
-  <div class="nav-inner">
-    <a href="../index.html" class="logo">Nezar Fahmi</a>
+  <main>
+    <a class="back-link" href="../index.html#projects">← Back to projects</a>
 
-    <nav aria-label="Primary navigation">
-      <a href="../index.html#about">About</a>
-      <a href="../index.html#projects">Projects</a>
-      <a href="../assets/resume.pdf" target="_blank">Resume</a>
-    </nav>
-  </div>
-</header>
+    <article class="project-detail">
+      <h1>Analog Audio Equalizer and Amplifier</h1>
 
-<main>
-  <article class="project-detail">
-    <a class="back-link" href="../index.html#projects">
-      ← Back to projects
-    </a>
+      <div class="gallery">
+        <figure>
+          <img
+            src="images/audio-equalizer/schematic.png"
+            alt="LTspice schematic of the analog audio equalizer"
+          >
+          <figcaption>LTspice equalizer schematic</figcaption>
+        </figure>
 
-    <h1>Analog Audio Equalizer and Amplifier</h1>
+        <figure>
+          <div class="fra-slideshow">
+            <div class="fra-stage">
+              <img
+                id="fra-image"
+                src="images/audio-equalizer/midpassfra.png"
+                alt="Mid-band frequency response plot"
+              >
+            </div>
 
-    <p class="project-meta">
-      Analog Design · LTspice · Laboratory Project · 2026
-    </p>
+            <div class="fra-meta">
+              <p class="fra-caption" id="fra-caption">
+                Mid-band frequency response
+              </p>
 
-    <div class="project-facts">
-      <div>
-        <span>Filters</span>
-        <strong>Three adjustable frequency bands</strong>
+              <p class="fra-subtext" id="fra-subtext">
+                Simulated band-pass response for the mid-frequency channel,
+                showing the lower and upper cutoff regions around the intended passband.
+              </p>
+            </div>
+
+            <div class="fra-tabs">
+              <button
+                class="fra-tab active"
+                type="button"
+                data-slide="0"
+              >
+                Mid-band
+              </button>
+
+              <button
+                class="fra-tab"
+                type="button"
+                data-slide="1"
+              >
+                Low-pass
+              </button>
+
+              <button
+                class="fra-tab"
+                type="button"
+                data-slide="2"
+              >
+                High-pass
+              </button>
+            </div>
+          </div>
+        </figure>
       </div>
 
-      <div>
-        <span>Amplifiers</span>
-        <strong>LM324 and LM386</strong>
+      <h2>Overview</h2>
+
+      <p>
+        This project was a three-band analog audio equalizer designed to separate
+        a full-range audio signal into bass, mid, and treble channels, apply
+        independent volume control to each band, recombine the processed signals,
+        and drive an 8 Ω speaker. The filter network used target cutoff
+        frequencies of 320 Hz and 3.2 kHz, with LM324 op-amps providing buffering,
+        gain control, and summation before an LM386 power-amplifier stage.
+      </p>
+
+      <h2>More details</h2>
+
+      <p>
+        The circuit was designed and simulated in LTspice before being built and
+        validated experimentally. Measured filter cutoff frequencies remained
+        within the required 10% tolerance, while the recombined output remained
+        close to the 100 mVrms design target across the three frequency bands.
+        The final LM386 stage produced 2.3221 Vrms into an 8 Ω speaker,
+        corresponding to approximately 674 mW of output power and exceeding the
+        400 mW requirement.
+      </p>
+
+      <h2>Project report</h2>
+
+      <p>
+        The complete design calculations, filter theory, experimental procedure,
+        oscilloscope captures, tolerance analysis, and final results are included
+        in the full project report below.
+      </p>
+
+      <div class="report-wrap">
+        <div class="report-actions">
+          <a
+            href="images/audio-equalizer/report.pdf"
+            target="_blank"
+            rel="noopener"
+          >
+            Open report in new tab
+          </a>
+
+          <a
+            href="images/audio-equalizer/report.pdf"
+            download
+          >
+            Download report
+          </a>
+        </div>
+
+        <iframe
+          class="report-frame"
+          src="images/audio-equalizer/report.pdf"
+          title="Analog Audio Equalizer and Amplifier project report"
+        ></iframe>
       </div>
 
-      <div>
-        <span>Output</span>
-        <strong>&gt;400 mW into 8 Ω</strong>
-      </div>
-    </div>
+      <a class="back-link" href="../index.html#projects">← Back to projects</a>
+    </article>
+  </main>
 
-    <div class="gallery">
-      <figure>
-        <img
-          src="images/audio-equalizer-circuit.svg"
-          alt="Audio equalizer circuit placeholder"
-        >
-        <figcaption>Assembled analog circuit</figcaption>
-      </figure>
+  <footer>
+    <p>&copy; 2026 Nezar Fahmi</p>
+  </footer>
 
-      <figure>
-        <img
-          src="images/audio-equalizer-schematic.svg"
-          alt="Audio equalizer schematic placeholder"
-        >
-        <figcaption>Equalizer and amplifier schematic</figcaption>
-      </figure>
+  <script>
+    const fraSlides = [
+      {
+        src: "images/audio-equalizer/midpassfra.png",
+        alt: "Mid-band frequency response plot",
+        caption: "Mid-band frequency response",
+        subtext:
+          "Simulated band-pass response for the mid-frequency channel, showing the lower and upper cutoff regions around the intended passband."
+      },
+      {
+        src: "images/audio-equalizer/lowpassfra.png",
+        alt: "Low-pass frequency response plot",
+        caption: "Low-pass frequency response",
+        subtext:
+          "Simulated bass-channel response showing attenuation above the low-pass cutoff frequency."
+      },
+      {
+        src: "images/audio-equalizer/highpassfra.png",
+        alt: "High-pass frequency response plot",
+        caption: "High-pass frequency response",
+        subtext:
+          "Simulated treble-channel response showing attenuation below the high-pass cutoff frequency."
+      }
+    ];
 
-      <figure>
-        <img
-          src="images/audio-equalizer-waveform.svg"
-          alt="Audio equalizer waveform placeholder"
-        >
-        <figcaption>Oscilloscope validation</figcaption>
-      </figure>
-    </div>
+    const fraImage = document.getElementById("fra-image");
+    const fraCaption = document.getElementById("fra-caption");
+    const fraSubtext = document.getElementById("fra-subtext");
+    const fraTabs = document.querySelectorAll(".fra-tab");
 
-    <h2>Overview</h2>
-    <p>
-      A three-band analog audio equalizer using RC filter networks for low,
-      mid, and high frequency bands. The measured −3 dB cutoff frequencies
-      were within 10% of their theoretical values.
-    </p>
+    function showFraSlide(index) {
+      const slide = fraSlides[index];
 
-    <h2>Amplification and testing</h2>
-    <p>
-      An LM324 summing stage combined the independently adjustable bands,
-      while an LM386 power amplifier drove an 8 Ω speaker at greater than
-      400 mW. The full circuit was simulated in LTspice and validated using
-      oscilloscope measurements with less than 15 mV ripple.
-    </p>
-  </article>
-</main>
+      fraImage.style.opacity = "0.15";
 
-<footer>
-  <p>&copy; 2026 Nezar Fahmi</p>
-</footer>
+      const preload = new Image();
+
+      preload.onload = () => {
+        fraImage.src = slide.src;
+        fraImage.alt = slide.alt;
+        fraCaption.textContent = slide.caption;
+        fraSubtext.textContent = slide.subtext;
+        fraImage.style.opacity = "1";
+      };
+
+      preload.src = slide.src;
+
+      fraTabs.forEach((tab, i) => {
+        tab.classList.toggle("active", i === index);
+      });
+    }
+
+    fraTabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        showFraSlide(Number(tab.dataset.slide));
+      });
+    });
+  </script>
 </body>
 </html>
