@@ -365,6 +365,41 @@
       box-shadow: 0 5px 18px rgba(0, 0, 0, 0.12);
     }
 
+
+    .vscode-tabs {
+      display: flex;
+      min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .vscode-tabs::-webkit-scrollbar { display: none; }
+
+    .vscode-tab {
+      border-bottom: 0;
+      cursor: pointer;
+    }
+
+    .vscode-tab:not(.is-active) {
+      background: #181818;
+      color: #9d9d9d;
+    }
+
+    .code-caption {
+      max-width: 760px !important;
+      margin: -0.35rem auto 1.55rem !important;
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.5 !important;
+      text-align: center;
+    }
+
+    .code-caption code,
+    .media-caption code {
+      font-family: "Cascadia Code", "Cascadia Mono", Consolas, "Courier New", monospace;
+      font-size: 0.95em;
+    }
+
     .vscode-topbar {
       height: 38px;
       display: flex;
@@ -577,7 +612,6 @@
     <nav>
       <a href="../index.html#about">About</a>
       <a href="../index.html#projects">Projects</a>
-      <a href="../assets/resume.pdf" target="_blank">Resume</a>
       <a href="../index.html#contact">Contact</a>
     </nav>
   </div>
@@ -769,40 +803,132 @@
       </div>
     </section>
 
+    
     <section class="content-section reveal">
       <h2>RTL design &amp; my contributions</h2>
-
       <p>
-        Within the team design, I was primarily responsible for the ship
-        physics and projectile systems. These modules handled player movement,
-        24-angle rotation, signed position updates, projectile spawning and
-        lifetime, and screen wraparound before integrating with the rest of the
-        game.
+        My primary contributions to the team were the RTL design and module-level
+        verification of the ship movement and
+        projectile systems. These blocks translated player inputs
+        and movement vectors into frame-by-frame game behavior, including rotation,
+        position updates, projectile spawning and motion, object lifetime, and
+        screen-edge wraparound. I developed and tested each subsystem independently
+        before it was integrated into the complete game.
       </p>
 
-      <h3>Ship physics</h3>
-
+      <h3>Ship movement &amp; physics</h3>
       <p>
-        The ship logic controls rotation and position updates across 24
-        discrete orientations. I verified clockwise and counterclockwise
-        rotation, angular wraparound, and thrust-driven position changes with a
-        dedicated SystemVerilog testbench before integrating the module into the
-        full game.
+        I designed the ship module to maintain the player's position and orientation
+        alongside the game's frame timing. The ship uses 24 discrete angular
+        orientations, with clockwise and counterclockwise rotation wrapping between
+        orientations 0 and 23. During thrust, signed X/Y movement values are applied
+        to the ship's position, with additional logic handling horizontal and
+        vertical screen wraparound.
       </p>
-
-
-      <div class="code-embed vscode-embed" data-code-embed>
+      
+      <div class="code-embed vscode-embed" data-code-viewer>
         <div class="vscode-topbar">
-          <div class="vscode-tab is-active">
-            <span class="vscode-file-icon">SV</span>
-            <span class="code-filename">ship_tb.sv</span>
+          <div class="vscode-tabs">
+            <button class="vscode-tab is-active" type="button" data-code-tab="ship-rtl">
+              <span class="vscode-file-icon">SV</span><span>ship.sv</span>
+            </button>
+            <button class="vscode-tab" type="button" data-code-tab="ship-tb">
+              <span class="vscode-file-icon">SV</span><span>ship_tb.sv</span>
+            </button>
           </div>
           <button class="copy-code" type="button" data-copy-code>Copy</button>
         </div>
+        <pre class="interactive-code" tabindex="0"><code data-code-output></code></pre>
+        <textarea class="code-raw" data-code-source="ship-rtl" data-kind="RTL" aria-hidden="true">module ship(
+input logic clk,
+input logic rst,
+input logic frame_tick,
+input logic rotate_cw,
+input logic rotate_ccw,
+input logic thrust,
+input logic [7:0] change,
+output logic signed [8:0] pos_x,
+output logic signed [8:0] pos_y,
+output logic [4:0] angle
+);
 
-        <pre class="interactive-code" tabindex="0" aria-label="ship_tb.sv source code"><code><span class="code-line" data-line="1"><span class="line-number">1</span><span class="line-code"><span class="tok-directive">`timescale</span> 1ns/1ps</span></span><span class="code-line" data-line="2"><span class="line-number">2</span><span class="line-code"></span></span><span class="code-line" data-line="3"><span class="line-number">3</span><span class="line-code"><span class="tok-keyword">module</span> <span class="tok-ident">ship_tb</span>;</span></span><span class="code-line" data-line="4"><span class="line-number">4</span><span class="line-code"></span></span><span class="code-line" data-line="5"><span class="line-number">5</span><span class="line-code"><span class="tok-keyword">logic</span> <span class="tok-ident">clk</span>;</span></span><span class="code-line" data-line="6"><span class="line-number">6</span><span class="line-code"><span class="tok-keyword">logic</span> <span class="tok-ident">rst</span>;</span></span><span class="code-line" data-line="7"><span class="line-number">7</span><span class="line-code"><span class="tok-keyword">logic</span> <span class="tok-ident">frame_tick</span>;</span></span><span class="code-line" data-line="8"><span class="line-number">8</span><span class="line-code"><span class="tok-keyword">logic</span> <span class="tok-ident">rotate_cw</span>, <span class="tok-ident">rotate_ccw</span>, <span class="tok-ident">thrust</span>;</span></span><span class="code-line" data-line="9"><span class="line-number">9</span><span class="line-code"><span class="tok-keyword">logic</span> [<span class="tok-number">7</span>:<span class="tok-number">0</span>] <span class="tok-ident">change</span>;</span></span><span class="code-line" data-line="10"><span class="line-number">10</span><span class="line-code"><span class="tok-keyword">logic</span> <span class="tok-keyword">signed</span> [<span class="tok-number">10</span>:<span class="tok-number">0</span>] <span class="tok-ident">pos_x</span>, <span class="tok-ident">pos_y</span>;</span></span><span class="code-line" data-line="11"><span class="line-number">11</span><span class="line-code"><span class="tok-keyword">logic</span> [<span class="tok-number">4</span>:<span class="tok-number">0</span>] <span class="tok-ident">angle</span>;</span></span><span class="code-line" data-line="12"><span class="line-number">12</span><span class="line-code"></span></span><span class="code-line" data-line="13"><span class="line-number">13</span><span class="line-code"><span class="tok-ident">ship</span> <span class="tok-ident">dut</span> (</span></span><span class="code-line" data-line="14"><span class="line-number">14</span><span class="line-code">    .<span class="tok-ident">clk</span>(<span class="tok-ident">clk</span>),</span></span><span class="code-line" data-line="15"><span class="line-number">15</span><span class="line-code">    .<span class="tok-ident">rst</span>(<span class="tok-ident">rst</span>),</span></span><span class="code-line" data-line="16"><span class="line-number">16</span><span class="line-code">    .<span class="tok-ident">frame_tick</span>(<span class="tok-ident">frame_tick</span>),</span></span><span class="code-line" data-line="17"><span class="line-number">17</span><span class="line-code">    .<span class="tok-ident">rotate_cw</span>(<span class="tok-ident">rotate_cw</span>),</span></span><span class="code-line" data-line="18"><span class="line-number">18</span><span class="line-code">    .<span class="tok-ident">rotate_ccw</span>(<span class="tok-ident">rotate_ccw</span>),</span></span><span class="code-line" data-line="19"><span class="line-number">19</span><span class="line-code">    .<span class="tok-ident">thrust</span>(<span class="tok-ident">thrust</span>),</span></span><span class="code-line" data-line="20"><span class="line-number">20</span><span class="line-code">    .<span class="tok-ident">change</span>(<span class="tok-ident">change</span>),</span></span><span class="code-line" data-line="21"><span class="line-number">21</span><span class="line-code">    .<span class="tok-ident">pos_x</span>(<span class="tok-ident">pos_x</span>),</span></span><span class="code-line" data-line="22"><span class="line-number">22</span><span class="line-code">    .<span class="tok-ident">pos_y</span>(<span class="tok-ident">pos_y</span>),</span></span><span class="code-line" data-line="23"><span class="line-number">23</span><span class="line-code">    .<span class="tok-ident">angle</span>(<span class="tok-ident">angle</span>)</span></span><span class="code-line" data-line="24"><span class="line-number">24</span><span class="line-code">);</span></span><span class="code-line" data-line="25"><span class="line-number">25</span><span class="line-code"></span></span><span class="code-line" data-line="26"><span class="line-number">26</span><span class="line-code"><span class="tok-comment">// 12.6 MHz clock</span></span></span><span class="code-line" data-line="27"><span class="line-number">27</span><span class="line-code"><span class="tok-keyword">initial</span> <span class="tok-keyword">begin</span></span></span><span class="code-line" data-line="28"><span class="line-number">28</span><span class="line-code">    <span class="tok-ident">clk</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="29"><span class="line-number">29</span><span class="line-code">    <span class="tok-keyword">forever</span> #<span class="tok-number">39.68</span> <span class="tok-ident">clk</span> = ~<span class="tok-ident">clk</span>;</span></span><span class="code-line" data-line="30"><span class="line-number">30</span><span class="line-code"><span class="tok-keyword">end</span></span></span><span class="code-line" data-line="31"><span class="line-number">31</span><span class="line-code"></span></span><span class="code-line" data-line="32"><span class="line-number">32</span><span class="line-code"><span class="tok-comment">// frame tick matches 60 frames per second which is 1.6677 ms per frame </span></span></span><span class="code-line" data-line="33"><span class="line-number">33</span><span class="line-code"><span class="tok-keyword">initial</span> <span class="tok-keyword">begin</span></span></span><span class="code-line" data-line="34"><span class="line-number">34</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="35"><span class="line-number">35</span><span class="line-code">    <span class="tok-keyword">forever</span> <span class="tok-keyword">begin</span></span></span><span class="code-line" data-line="36"><span class="line-number">36</span><span class="line-code">        #<span class="tok-number">16666667</span> <span class="tok-ident">frame_tick</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="37"><span class="line-number">37</span><span class="line-code">        #<span class="tok-number">79.36</span> <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="38"><span class="line-number">38</span><span class="line-code">    <span class="tok-keyword">end</span></span></span><span class="code-line" data-line="39"><span class="line-number">39</span><span class="line-code"><span class="tok-keyword">end</span></span></span><span class="code-line" data-line="40"><span class="line-number">40</span><span class="line-code"></span></span><span class="code-line" data-line="41"><span class="line-number">41</span><span class="line-code"><span class="tok-keyword">initial</span> <span class="tok-keyword">begin</span></span></span><span class="code-line" data-line="42"><span class="line-number">42</span><span class="line-code">    <span class="tok-system">$dumpfile</span>(<span class="tok-string">"ship.vcd"</span>);</span></span><span class="code-line" data-line="43"><span class="line-number">43</span><span class="line-code">    <span class="tok-system">$dumpvars</span>(<span class="tok-number">0</span>, <span class="tok-ident">ship_tb</span>);</span></span><span class="code-line" data-line="44"><span class="line-number">44</span><span class="line-code"></span></span><span class="code-line" data-line="45"><span class="line-number">45</span><span class="line-code">    <span class="tok-comment">// initialize</span></span></span><span class="code-line" data-line="46"><span class="line-number">46</span><span class="line-code">    <span class="tok-ident">rst</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="47"><span class="line-number">47</span><span class="line-code">    <span class="tok-ident">rotate_cw</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="48"><span class="line-number">48</span><span class="line-code">    <span class="tok-ident">rotate_ccw</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="49"><span class="line-number">49</span><span class="line-code">    <span class="tok-ident">thrust</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="50"><span class="line-number">50</span><span class="line-code">    <span class="tok-ident">change</span> = <span class="tok-number">8'b0000_0000</span>;</span></span><span class="code-line" data-line="51"><span class="line-number">51</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="52"><span class="line-number">52</span><span class="line-code"></span></span><span class="code-line" data-line="53"><span class="line-number">53</span><span class="line-code">    <span class="tok-comment">// release rst</span></span></span><span class="code-line" data-line="54"><span class="line-number">54</span><span class="line-code">    #<span class="tok-number">200</span>;</span></span><span class="code-line" data-line="55"><span class="line-number">55</span><span class="line-code">    <span class="tok-ident">rst</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="56"><span class="line-number">56</span><span class="line-code">    #<span class="tok-number">200</span>;</span></span><span class="code-line" data-line="57"><span class="line-number">57</span><span class="line-code"></span></span><span class="code-line" data-line="58"><span class="line-number">58</span><span class="line-code">    <span class="tok-comment">//ccw rotation testcase (angle goes from 6 to 7)</span></span></span><span class="code-line" data-line="59"><span class="line-number">59</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"TEST 1: ccw rotation"</span>);</span></span><span class="code-line" data-line="60"><span class="line-number">60</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="61"><span class="line-number">61</span><span class="line-code">    <span class="tok-ident">rotate_ccw</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="62"><span class="line-number">62</span><span class="line-code">    #<span class="tok-number">100</span>;</span></span><span class="code-line" data-line="63"><span class="line-number">63</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="64"><span class="line-number">64</span><span class="line-code">    <span class="tok-ident">rotate_ccw</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="65"><span class="line-number">65</span><span class="line-code">    #<span class="tok-number">1000</span>;</span></span><span class="code-line" data-line="66"><span class="line-number">66</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"angle after ccw: %d == 7?"</span>, <span class="tok-ident">angle</span>);</span></span><span class="code-line" data-line="67"><span class="line-number">67</span><span class="line-code"></span></span><span class="code-line" data-line="68"><span class="line-number">68</span><span class="line-code">    <span class="tok-comment">//cw rotation testcase (angle goes from 7 to 6)</span></span></span><span class="code-line" data-line="69"><span class="line-number">69</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"TEST 2: cw rotation"</span>);</span></span><span class="code-line" data-line="70"><span class="line-number">70</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="71"><span class="line-number">71</span><span class="line-code">    <span class="tok-ident">rotate_cw</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="72"><span class="line-number">72</span><span class="line-code">    #<span class="tok-number">100</span>;</span></span><span class="code-line" data-line="73"><span class="line-number">73</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="74"><span class="line-number">74</span><span class="line-code">    <span class="tok-ident">rotate_cw</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="75"><span class="line-number">75</span><span class="line-code">    #<span class="tok-number">1000</span>;</span></span><span class="code-line" data-line="76"><span class="line-number">76</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"angle after CW: %d == 6?"</span>, <span class="tok-ident">angle</span>);</span></span><span class="code-line" data-line="77"><span class="line-number">77</span><span class="line-code"></span></span><span class="code-line" data-line="78"><span class="line-number">78</span><span class="line-code">    <span class="tok-comment">//wraparound testcase</span></span></span><span class="code-line" data-line="79"><span class="line-number">79</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"TEST 3: rotating from 6 to 23"</span>);</span></span><span class="code-line" data-line="80"><span class="line-number">80</span><span class="line-code">    <span class="tok-keyword">repeat</span>(<span class="tok-number">17</span>) <span class="tok-keyword">begin</span> <span class="tok-comment">//6+17 button presses = 23</span></span></span><span class="code-line" data-line="81"><span class="line-number">81</span><span class="line-code">        <span class="tok-ident">rotate_ccw</span> = <span class="tok-number">0</span>;      </span></span><span class="code-line" data-line="82"><span class="line-number">82</span><span class="line-code">        #<span class="tok-number">200</span>;</span></span><span class="code-line" data-line="83"><span class="line-number">83</span><span class="line-code">        <span class="tok-ident">rotate_ccw</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="84"><span class="line-number">84</span><span class="line-code">        #<span class="tok-number">200</span>;</span></span><span class="code-line" data-line="85"><span class="line-number">85</span><span class="line-code">        <span class="tok-ident">frame_tick</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="86"><span class="line-number">86</span><span class="line-code">        #<span class="tok-number">200</span>;</span></span><span class="code-line" data-line="87"><span class="line-number">87</span><span class="line-code">        <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="88"><span class="line-number">88</span><span class="line-code">        #<span class="tok-number">200</span>;</span></span><span class="code-line" data-line="89"><span class="line-number">89</span><span class="line-code">        <span class="tok-ident">rotate_ccw</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="90"><span class="line-number">90</span><span class="line-code">        #<span class="tok-number">200</span>;</span></span><span class="code-line" data-line="91"><span class="line-number">91</span><span class="line-code">        <span class="tok-ident">frame_tick</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="92"><span class="line-number">92</span><span class="line-code">        #<span class="tok-number">200</span>;</span></span><span class="code-line" data-line="93"><span class="line-number">93</span><span class="line-code">        <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="94"><span class="line-number">94</span><span class="line-code">        #<span class="tok-number">200</span>;</span></span><span class="code-line" data-line="95"><span class="line-number">95</span><span class="line-code">    <span class="tok-keyword">end</span></span></span><span class="code-line" data-line="96"><span class="line-number">96</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"angle before wrapping: %d == 23?"</span>, <span class="tok-ident">angle</span>);</span></span><span class="code-line" data-line="97"><span class="line-number">97</span><span class="line-code"></span></span><span class="code-line" data-line="98"><span class="line-number">98</span><span class="line-code">    <span class="tok-comment">//go from 23 to 0 by doing one full ccw cycle</span></span></span><span class="code-line" data-line="99"><span class="line-number">99</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"TEST 4: wraparound ccw 23 to 0"</span>);</span></span><span class="code-line" data-line="100"><span class="line-number">100</span><span class="line-code">    <span class="tok-ident">rotate_ccw</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="101"><span class="line-number">101</span><span class="line-code">    #<span class="tok-number">200</span>;</span></span><span class="code-line" data-line="102"><span class="line-number">102</span><span class="line-code">    <span class="tok-ident">rotate_ccw</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="103"><span class="line-number">103</span><span class="line-code">    #<span class="tok-number">200</span>;</span></span><span class="code-line" data-line="104"><span class="line-number">104</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="105"><span class="line-number">105</span><span class="line-code">    #<span class="tok-number">200</span>;</span></span><span class="code-line" data-line="106"><span class="line-number">106</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="107"><span class="line-number">107</span><span class="line-code">    #<span class="tok-number">200</span>;</span></span><span class="code-line" data-line="108"><span class="line-number">108</span><span class="line-code">    <span class="tok-ident">rotate_ccw</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="109"><span class="line-number">109</span><span class="line-code">    #<span class="tok-number">200</span>;</span></span><span class="code-line" data-line="110"><span class="line-number">110</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="111"><span class="line-number">111</span><span class="line-code">    #<span class="tok-number">200</span>;</span></span><span class="code-line" data-line="112"><span class="line-number">112</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="113"><span class="line-number">113</span><span class="line-code">    #<span class="tok-number">200</span>;</span></span><span class="code-line" data-line="114"><span class="line-number">114</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"angle after wrapping: %d == 0?"</span>, <span class="tok-ident">angle</span>);</span></span><span class="code-line" data-line="115"><span class="line-number">115</span><span class="line-code"></span></span><span class="code-line" data-line="116"><span class="line-number">116</span><span class="line-code">    <span class="tok-comment">// TEST 4</span></span></span><span class="code-line" data-line="117"><span class="line-number">117</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"TEST 4: wraparound cw 0 to 23"</span>);</span></span><span class="code-line" data-line="118"><span class="line-number">118</span><span class="line-code">    <span class="tok-comment">//go back from 0 to 23 using clockwise.</span></span></span><span class="code-line" data-line="119"><span class="line-number">119</span><span class="line-code">        <span class="tok-ident">frame_tick</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="120"><span class="line-number">120</span><span class="line-code">        <span class="tok-ident">rotate_cw</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="121"><span class="line-number">121</span><span class="line-code">        #<span class="tok-number">100</span>;</span></span><span class="code-line" data-line="122"><span class="line-number">122</span><span class="line-code">        <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="123"><span class="line-number">123</span><span class="line-code">        <span class="tok-ident">rotate_ccw</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="124"><span class="line-number">124</span><span class="line-code">        #<span class="tok-number">1000</span>;</span></span><span class="code-line" data-line="125"><span class="line-number">125</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"angle after wrapping: %d == 23?"</span>, <span class="tok-ident">angle</span>);</span></span><span class="code-line" data-line="126"><span class="line-number">126</span><span class="line-code"></span></span><span class="code-line" data-line="127"><span class="line-number">127</span><span class="line-code">    <span class="tok-comment">//thrust testcase with test change values. </span></span></span><span class="code-line" data-line="128"><span class="line-number">128</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"TEST 5: thrust with test position changes"</span>);</span></span><span class="code-line" data-line="129"><span class="line-number">129</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"Position before thrust (%d, %d)"</span>, <span class="tok-ident">pos_x</span>, <span class="tok-ident">pos_y</span>);</span></span><span class="code-line" data-line="130"><span class="line-number">130</span><span class="line-code">    <span class="tok-ident">change</span> = <span class="tok-number">8'b0100_1100</span>;  <span class="tok-comment">// dx= +4, dy= -4 (move up and right)</span></span></span><span class="code-line" data-line="131"><span class="line-number">131</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">1</span>; </span></span><span class="code-line" data-line="132"><span class="line-number">132</span><span class="line-code">    <span class="tok-ident">thrust</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="133"><span class="line-number">133</span><span class="line-code">    #<span class="tok-number">100</span>;</span></span><span class="code-line" data-line="134"><span class="line-number">134</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="135"><span class="line-number">135</span><span class="line-code">    <span class="tok-ident">thrust</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="136"><span class="line-number">136</span><span class="line-code">    #<span class="tok-number">1000</span>;</span></span><span class="code-line" data-line="137"><span class="line-number">137</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"Position after thrust: (%d, %d) == 164, 116?)"</span>, <span class="tok-ident">pos_x</span>, <span class="tok-ident">pos_y</span>);</span></span><span class="code-line" data-line="138"><span class="line-number">138</span><span class="line-code"></span></span><span class="code-line" data-line="139"><span class="line-number">139</span><span class="line-code">    #<span class="tok-number">5000</span>;</span></span><span class="code-line" data-line="140"><span class="line-number">140</span><span class="line-code">    <span class="tok-system">$finish</span>;</span></span><span class="code-line" data-line="141"><span class="line-number">141</span><span class="line-code"><span class="tok-keyword">end</span></span></span><span class="code-line" data-line="142"><span class="line-number">142</span><span class="line-code"></span></span><span class="code-line" data-line="143"><span class="line-number">143</span><span class="line-code"><span class="tok-keyword">endmodule</span></span></span></code></pre>
+logic signed [8:0] pos_x_reg;
+logic signed [8:0] pos_y_reg;
+logic [4:0] angle_reg; // 5 bits to fit 24 unique angles.
+logic signed [8:0] next_x;
+logic signed [8:0] next_y;
 
-        <textarea class="code-raw" data-code-raw aria-hidden="true" tabindex="-1">`timescale 1ns/1ps
+logic prev_cw;
+logic prev_ccw;
+logic rotate_cw_edge;
+logic rotate_ccw_edge;
+
+//edge detection
+assign rotate_cw_edge  = rotate_cw  &amp; ~prev_cw;
+assign rotate_ccw_edge = rotate_ccw &amp; ~prev_ccw;
+
+//connected the outputs
+assign pos_x = pos_x_reg;
+assign pos_y = pos_y_reg;
+assign angle = angle_reg;
+
+always_ff @(posedge clk or posedge rst) begin
+    if (rst) begin
+        prev_cw &lt;= 1&#x27;b0;
+        prev_ccw &lt;= 1&#x27;b0;
+    end
+    else begin
+        prev_cw &lt;= rotate_cw;
+        prev_ccw &lt;= rotate_ccw;
+    end
+end
+
+always_ff @(posedge clk or posedge rst) begin
+    if (rst) begin
+        //initial values
+        pos_x_reg &lt;= 9&#x27;d160;
+        pos_y_reg &lt;= 9&#x27;d120;
+        angle_reg &lt;= 5&#x27;d6; //index 6 is 90 degrees, so ship starts vertically
+    end
+    else if (frame_tick) begin
+
+        if (rotate_ccw_edge) begin
+            angle_reg &lt;= (angle_reg == 5&#x27;d23) ? 5&#x27;d0 : angle_reg + 1;
+        end
+        else if (rotate_cw_edge) begin
+            angle_reg &lt;= (angle_reg == 5&#x27;d0) ? 5&#x27;d23 : angle_reg - 1;
+        end
+
+        next_x = pos_x_reg;
+        next_y = pos_y_reg;
+
+        if (thrust) begin
+            next_x = pos_x_reg + {{7{change[7]}}, change[7:4]};  //update x position
+            next_y = pos_y_reg + {{7{change[3]}}, change[3:0]};  //update y position
+        end
+
+        //wraparound the screen
+        if (next_x &gt; 319) begin
+            next_x = 0;
+        end
+        else if (next_x &lt; 0) begin
+            next_x = 319;
+        end
+
+        if (next_y &gt; 239) begin
+            next_y = 0;
+        end
+        else if (next_y &lt; 0) begin
+            next_y = 239;
+        end
+
+        pos_x_reg &lt;= next_x;
+        pos_y_reg &lt;= next_y;
+    end
+end
+
+endmodule</textarea>
+        <textarea class="code-raw" data-code-source="ship-tb" data-kind="Testbench" aria-hidden="true">`timescale 1ns/1ps
 
 module ship_tb;
 
@@ -811,7 +937,7 @@ logic rst;
 logic frame_tick;
 logic rotate_cw, rotate_ccw, thrust;
 logic [7:0] change;
-logic signed [10:0] pos_x, pos_y;
+logic signed [8:0] pos_x, pos_y;
 logic [4:0] angle;
 
 ship dut (
@@ -833,7 +959,7 @@ initial begin
     forever #39.68 clk = ~clk;
 end
 
-// frame tick matches 60 frames per second which is 1.6677 ms per frame 
+// frame tick matches 60 frames per second which is 1.6677 ms per frame
 initial begin
     frame_tick = 0;
     forever begin
@@ -843,46 +969,41 @@ initial begin
 end
 
 initial begin
-    $dumpfile("ship.vcd");
+    $dumpfile(&quot;ship.vcd&quot;);
     $dumpvars(0, ship_tb);
 
-    // initialize
     rst = 1;
     rotate_cw = 0;
     rotate_ccw = 0;
     thrust = 0;
-    change = 8'b0000_0000;
+    change = 8&#x27;b0000_0000;
     frame_tick = 0;
 
-    // release rst
     #200;
     rst = 0;
     #200;
 
-    //ccw rotation testcase (angle goes from 6 to 7)
-    $display("TEST 1: ccw rotation");
+    $display(&quot;TEST 1: ccw rotation&quot;);
     frame_tick = 1;
     rotate_ccw = 1;
     #100;
     frame_tick = 0;
     rotate_ccw = 0;
     #1000;
-    $display("angle after ccw: %d == 7?", angle);
+    $display(&quot;angle after ccw: %d == 7?&quot;, angle);
 
-    //cw rotation testcase (angle goes from 7 to 6)
-    $display("TEST 2: cw rotation");
+    $display(&quot;TEST 2: cw rotation&quot;);
     frame_tick = 1;
     rotate_cw = 1;
     #100;
     frame_tick = 0;
     rotate_cw = 0;
     #1000;
-    $display("angle after CW: %d == 6?", angle);
+    $display(&quot;angle after CW: %d == 6?&quot;, angle);
 
-    //wraparound testcase
-    $display("TEST 3: rotating from 6 to 23");
-    repeat(17) begin //6+17 button presses = 23
-        rotate_ccw = 0;      
+    $display(&quot;TEST 3: rotating from 6 to 23&quot;);
+    repeat(17) begin
+        rotate_ccw = 0;
         #200;
         rotate_ccw = 1;
         #200;
@@ -897,10 +1018,9 @@ initial begin
         frame_tick = 0;
         #200;
     end
-    $display("angle before wrapping: %d == 23?", angle);
+    $display(&quot;angle before wrapping: %d == 23?&quot;, angle);
 
-    //go from 23 to 0 by doing one full ccw cycle
-    $display("TEST 4: wraparound ccw 23 to 0");
+    $display(&quot;TEST 4: wraparound ccw 23 to 0&quot;);
     rotate_ccw = 0;
     #200;
     rotate_ccw = 1;
@@ -915,79 +1035,141 @@ initial begin
     #200;
     frame_tick = 0;
     #200;
-    $display("angle after wrapping: %d == 0?", angle);
+    $display(&quot;angle after wrapping: %d == 0?&quot;, angle);
 
-    // TEST 4
-    $display("TEST 4: wraparound cw 0 to 23");
-    //go back from 0 to 23 using clockwise.
-        frame_tick = 1;
-        rotate_cw = 1;
-        #100;
-        frame_tick = 0;
-        rotate_ccw = 0;
-        #1000;
-    $display("angle after wrapping: %d == 23?", angle);
+    $display(&quot;TEST 4: wraparound cw 0 to 23&quot;);
+    frame_tick = 1;
+    rotate_cw = 1;
+    #100;
+    frame_tick = 0;
+    rotate_ccw = 0;
+    #1000;
+    $display(&quot;angle after wrapping: %d == 23?&quot;, angle);
 
-    //thrust testcase with test change values. 
-    $display("TEST 5: thrust with test position changes");
-    $display("Position before thrust (%d, %d)", pos_x, pos_y);
-    change = 8'b0100_1100;  // dx= +4, dy= -4 (move up and right)
-    frame_tick = 1; 
+    $display(&quot;TEST 5: thrust with test position changes&quot;);
+    $display(&quot;Position before thrust (%d, %d)&quot;, pos_x, pos_y);
+    change = 8&#x27;b0100_1100;
+    frame_tick = 1;
     thrust = 1;
     #100;
     frame_tick = 0;
     thrust = 0;
     #1000;
-    $display("Position after thrust: (%d, %d) == 164, 116?)", pos_x, pos_y);
+    $display(&quot;Position after thrust: (%d, %d) == 164, 116?)&quot;, pos_x, pos_y);
 
     #5000;
     $finish;
 end
 
 endmodule</textarea>
-
         <div class="vscode-statusbar">
-          <span>SystemVerilog</span>
-          <span>UTF-8</span>
+          <span>SystemVerilog</span><span data-code-kind>RTL</span><span>UTF-8</span>
         </div>
       </div>
-
+      <p class="code-caption">
+        <code>ship.sv</code> shows the taped-out RTL; <code>ship_tb.sv</code>
+        shows the module-level testbench used for rotation, thrust, and wraparound verification.
+      </p>
 
       <figure class="media-block">
-        <img
-          src="images/atari/shipwaveform.png"
-          alt="Ship physics verification waveform"
-        >
+        <img src="images/atari/shipwaveform.png" alt="Ship verification waveform">
         <figcaption class="media-caption">
-          Ship physics verification waveform generated from the testbench above.
+          Ship movement and rotation verification waveform generated from <code>ship_tb.sv</code>.
         </figcaption>
       </figure>
 
-      <h3>Projectile physics</h3>
-
+      <h3>Projectile system</h3>
       <p>
-        The projectile module spawns a bullet from the ship position, advances
-        it using the encoded velocity vector, prevents a second projectile from
-        spawning while one is already active, expires the projectile after its
-        configured lifetime, and verifies screen wraparound behavior.
+        I designed the projectile module to spawn a bullet at the ship's current
+        position and move it using signed velocity components derived from the
+        ship's heading. The module tracks whether a projectile is active, prevents
+        another projectile from spawning simultaneously, updates its position each
+        frame, handles screen-edge wraparound, and automatically despawns it after
+        its configured lifetime.
       </p>
-
-
-      <div class="code-embed vscode-embed" data-code-embed>
+      
+      <div class="code-embed vscode-embed" data-code-viewer>
         <div class="vscode-topbar">
-          <div class="vscode-tab is-active">
-            <span class="vscode-file-icon">SV</span>
-            <span class="code-filename">bullet_tb.sv</span>
+          <div class="vscode-tabs">
+            <button class="vscode-tab is-active" type="button" data-code-tab="bullet-rtl">
+              <span class="vscode-file-icon">SV</span><span>bullet.sv</span>
+            </button>
+            <button class="vscode-tab" type="button" data-code-tab="bullet-tb">
+              <span class="vscode-file-icon">SV</span><span>bullet_tb.sv</span>
+            </button>
           </div>
           <button class="copy-code" type="button" data-copy-code>Copy</button>
         </div>
+        <pre class="interactive-code" tabindex="0"><code data-code-output></code></pre>
+        <textarea class="code-raw" data-code-source="bullet-rtl" data-kind="RTL" aria-hidden="true">module bullet (
+input logic clk,
+input logic rst,
+input logic frame_tick,
+input logic shoot_pulse,
+input logic signed [10:0] ship_x,
+input logic signed [10:0] ship_y,
+input logic [7:0] bullet_vel,
+output logic [10:0] bullet_x,
+output logic [10:0] bullet_y,
+output logic bullet_active
+);
 
-        <pre class="interactive-code" tabindex="0" aria-label="bullet_tb.sv source code"><code><span class="code-line" data-line="1"><span class="line-number">1</span><span class="line-code"><span class="tok-directive">`timescale</span> 1ns/1ps</span></span><span class="code-line" data-line="2"><span class="line-number">2</span><span class="line-code"></span></span><span class="code-line" data-line="3"><span class="line-number">3</span><span class="line-code"><span class="tok-keyword">module</span> <span class="tok-ident">bullet_tb</span>;</span></span><span class="code-line" data-line="4"><span class="line-number">4</span><span class="line-code"></span></span><span class="code-line" data-line="5"><span class="line-number">5</span><span class="line-code"><span class="tok-keyword">logic</span> <span class="tok-ident">clk</span>, <span class="tok-ident">rst</span>, <span class="tok-ident">frame_tick</span>, <span class="tok-ident">shoot_pulse</span>;</span></span><span class="code-line" data-line="6"><span class="line-number">6</span><span class="line-code"><span class="tok-keyword">logic</span> <span class="tok-keyword">signed</span> [<span class="tok-number">10</span>:<span class="tok-number">0</span>] <span class="tok-ident">ship_x</span>, <span class="tok-ident">ship_y</span>;</span></span><span class="code-line" data-line="7"><span class="line-number">7</span><span class="line-code"><span class="tok-keyword">logic</span> [<span class="tok-number">7</span>:<span class="tok-number">0</span>] <span class="tok-ident">bullet_vel</span>;</span></span><span class="code-line" data-line="8"><span class="line-number">8</span><span class="line-code"><span class="tok-keyword">logic</span> <span class="tok-keyword">signed</span> [<span class="tok-number">10</span>:<span class="tok-number">0</span>] <span class="tok-ident">bullet_x</span>, <span class="tok-ident">bullet_y</span>;</span></span><span class="code-line" data-line="9"><span class="line-number">9</span><span class="line-code"><span class="tok-keyword">logic</span> <span class="tok-ident">bullet_active</span>;</span></span><span class="code-line" data-line="10"><span class="line-number">10</span><span class="line-code"></span></span><span class="code-line" data-line="11"><span class="line-number">11</span><span class="line-code"><span class="tok-ident">bullet</span> <span class="tok-ident">dut</span> (</span></span><span class="code-line" data-line="12"><span class="line-number">12</span><span class="line-code">    .<span class="tok-ident">clk</span>(<span class="tok-ident">clk</span>),</span></span><span class="code-line" data-line="13"><span class="line-number">13</span><span class="line-code">    .<span class="tok-ident">rst</span>(<span class="tok-ident">rst</span>),</span></span><span class="code-line" data-line="14"><span class="line-number">14</span><span class="line-code">    .<span class="tok-ident">frame_tick</span>(<span class="tok-ident">frame_tick</span>),</span></span><span class="code-line" data-line="15"><span class="line-number">15</span><span class="line-code">    .<span class="tok-ident">shoot_pulse</span>(<span class="tok-ident">shoot_pulse</span>),</span></span><span class="code-line" data-line="16"><span class="line-number">16</span><span class="line-code">    .<span class="tok-ident">ship_x</span>(<span class="tok-ident">ship_x</span>),</span></span><span class="code-line" data-line="17"><span class="line-number">17</span><span class="line-code">    .<span class="tok-ident">ship_y</span>(<span class="tok-ident">ship_y</span>),</span></span><span class="code-line" data-line="18"><span class="line-number">18</span><span class="line-code">    .<span class="tok-ident">bullet_vel</span>(<span class="tok-ident">bullet_vel</span>),</span></span><span class="code-line" data-line="19"><span class="line-number">19</span><span class="line-code">    .<span class="tok-ident">bullet_x</span>(<span class="tok-ident">bullet_x</span>),</span></span><span class="code-line" data-line="20"><span class="line-number">20</span><span class="line-code">    .<span class="tok-ident">bullet_y</span>(<span class="tok-ident">bullet_y</span>),</span></span><span class="code-line" data-line="21"><span class="line-number">21</span><span class="line-code">    .<span class="tok-ident">bullet_active</span>(<span class="tok-ident">bullet_active</span>)</span></span><span class="code-line" data-line="22"><span class="line-number">22</span><span class="line-code">);</span></span><span class="code-line" data-line="23"><span class="line-number">23</span><span class="line-code"></span></span><span class="code-line" data-line="24"><span class="line-number">24</span><span class="line-code"><span class="tok-keyword">initial</span> <span class="tok-keyword">begin</span></span></span><span class="code-line" data-line="25"><span class="line-number">25</span><span class="line-code">    <span class="tok-ident">clk</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="26"><span class="line-number">26</span><span class="line-code">    <span class="tok-keyword">forever</span> #<span class="tok-number">36.98</span> <span class="tok-ident">clk</span> = ~<span class="tok-ident">clk</span>;</span></span><span class="code-line" data-line="27"><span class="line-number">27</span><span class="line-code"><span class="tok-keyword">end</span></span></span><span class="code-line" data-line="28"><span class="line-number">28</span><span class="line-code"></span></span><span class="code-line" data-line="29"><span class="line-number">29</span><span class="line-code"><span class="tok-keyword">initial</span> <span class="tok-keyword">begin</span> </span></span><span class="code-line" data-line="30"><span class="line-number">30</span><span class="line-code">    <span class="tok-system">$dumpfile</span>(<span class="tok-string">"bullet.vcd"</span>);</span></span><span class="code-line" data-line="31"><span class="line-number">31</span><span class="line-code">    <span class="tok-system">$dumpvars</span>(<span class="tok-number">0</span>, <span class="tok-ident">bullet_tb</span>);</span></span><span class="code-line" data-line="32"><span class="line-number">32</span><span class="line-code"></span></span><span class="code-line" data-line="33"><span class="line-number">33</span><span class="line-code">    <span class="tok-ident">rst</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="34"><span class="line-number">34</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="35"><span class="line-number">35</span><span class="line-code">    <span class="tok-ident">shoot_pulse</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="36"><span class="line-number">36</span><span class="line-code">    <span class="tok-ident">ship_x</span> = <span class="tok-number">11'd160</span>;</span></span><span class="code-line" data-line="37"><span class="line-number">37</span><span class="line-code">    <span class="tok-ident">ship_y</span> = <span class="tok-number">11'd120</span>;</span></span><span class="code-line" data-line="38"><span class="line-number">38</span><span class="line-code">    <span class="tok-ident">bullet_vel</span> = <span class="tok-number">8'b0010_1110</span>; <span class="tok-comment">//vx = +2, vy = -2 </span></span></span><span class="code-line" data-line="39"><span class="line-number">39</span><span class="line-code"></span></span><span class="code-line" data-line="40"><span class="line-number">40</span><span class="line-code">    #<span class="tok-number">100</span>;</span></span><span class="code-line" data-line="41"><span class="line-number">41</span><span class="line-code">    <span class="tok-ident">rst</span> = <span class="tok-number">0</span>; </span></span><span class="code-line" data-line="42"><span class="line-number">42</span><span class="line-code">    #<span class="tok-number">100</span>; </span></span><span class="code-line" data-line="43"><span class="line-number">43</span><span class="line-code"></span></span><span class="code-line" data-line="44"><span class="line-number">44</span><span class="line-code">    <span class="tok-comment">//testcase 1: spawn bullet</span></span></span><span class="code-line" data-line="45"><span class="line-number">45</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"test 1: spawn bullet at center"</span>);</span></span><span class="code-line" data-line="46"><span class="line-number">46</span><span class="line-code">    <span class="tok-ident">shoot_pulse</span> = <span class="tok-number">1</span>;    </span></span><span class="code-line" data-line="47"><span class="line-number">47</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="48"><span class="line-number">48</span><span class="line-code">    #<span class="tok-number">79.36</span>;</span></span><span class="code-line" data-line="49"><span class="line-number">49</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="50"><span class="line-number">50</span><span class="line-code">    <span class="tok-ident">shoot_pulse</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="51"><span class="line-number">51</span><span class="line-code">    #<span class="tok-number">79.36</span>;</span></span><span class="code-line" data-line="52"><span class="line-number">52</span><span class="line-code"></span></span><span class="code-line" data-line="53"><span class="line-number">53</span><span class="line-code">    <span class="tok-keyword">repeat</span>(<span class="tok-number">10</span>) <span class="tok-keyword">begin</span> </span></span><span class="code-line" data-line="54"><span class="line-number">54</span><span class="line-code">        #<span class="tok-number">79.36</span>;</span></span><span class="code-line" data-line="55"><span class="line-number">55</span><span class="line-code">        <span class="tok-ident">frame_tick</span> = <span class="tok-number">1</span>; </span></span><span class="code-line" data-line="56"><span class="line-number">56</span><span class="line-code">        <span class="tok-system">$display</span>(<span class="tok-string">"frame: bullet_x = %d, bullet_y = %d, active = %b"</span>, <span class="tok-ident">bullet_x</span>, <span class="tok-ident">bullet_y</span>, <span class="tok-ident">bullet_active</span>);</span></span><span class="code-line" data-line="57"><span class="line-number">57</span><span class="line-code">    <span class="tok-keyword">end</span></span></span><span class="code-line" data-line="58"><span class="line-number">58</span><span class="line-code"></span></span><span class="code-line" data-line="59"><span class="line-number">59</span><span class="line-code">    <span class="tok-comment">//testcase 2: try to spawn while active</span></span></span><span class="code-line" data-line="60"><span class="line-number">60</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"
-test 2: spawning while bullet is active"</span>);</span></span><span class="code-line" data-line="61"><span class="line-number">61</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"before spawn attempt: bullet_x = %d, bullet_y = %d, active = %b"</span>, <span class="tok-ident">bullet_x</span>, <span class="tok-ident">bullet_y</span>, <span class="tok-ident">bullet_active</span>);</span></span><span class="code-line" data-line="62"><span class="line-number">62</span><span class="line-code">    <span class="tok-ident">shoot_pulse</span> = <span class="tok-number">1</span>; </span></span><span class="code-line" data-line="63"><span class="line-number">63</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">1</span>; </span></span><span class="code-line" data-line="64"><span class="line-number">64</span><span class="line-code">    #<span class="tok-number">79.36</span>;</span></span><span class="code-line" data-line="65"><span class="line-number">65</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>; </span></span><span class="code-line" data-line="66"><span class="line-number">66</span><span class="line-code">    <span class="tok-ident">shoot_pulse</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="67"><span class="line-number">67</span><span class="line-code">    #<span class="tok-number">79.36</span>;</span></span><span class="code-line" data-line="68"><span class="line-number">68</span><span class="line-code"></span></span><span class="code-line" data-line="69"><span class="line-number">69</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"after spawn attempt: bullet_x = %d, bullet_y = %d, active = %b"</span>, <span class="tok-ident">bullet_x</span>, <span class="tok-ident">bullet_y</span>, <span class="tok-ident">bullet_active</span>);</span></span><span class="code-line" data-line="70"><span class="line-number">70</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"expected: bullet is still moving, not reset to ship pos"</span>);</span></span><span class="code-line" data-line="71"><span class="line-number">71</span><span class="line-code"></span></span><span class="code-line" data-line="72"><span class="line-number">72</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"
-test 3: lifetime of bullet to timeout"</span>);</span></span><span class="code-line" data-line="73"><span class="line-number">73</span><span class="line-code">    <span class="tok-keyword">repeat</span>(<span class="tok-number">115</span>) <span class="tok-keyword">begin</span> </span></span><span class="code-line" data-line="74"><span class="line-number">74</span><span class="line-code">        <span class="tok-ident">frame_tick</span> = <span class="tok-number">1</span>; </span></span><span class="code-line" data-line="75"><span class="line-number">75</span><span class="line-code">        #<span class="tok-number">79.36</span>;</span></span><span class="code-line" data-line="76"><span class="line-number">76</span><span class="line-code">        <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="77"><span class="line-number">77</span><span class="line-code">        #<span class="tok-number">79.36</span>;</span></span><span class="code-line" data-line="78"><span class="line-number">78</span><span class="line-code">    <span class="tok-keyword">end</span></span></span><span class="code-line" data-line="79"><span class="line-number">79</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"after 125 frames: bullet_active=%b"</span>, <span class="tok-ident">bullet_active</span>);  </span></span><span class="code-line" data-line="80"><span class="line-number">80</span><span class="line-code"></span></span><span class="code-line" data-line="81"><span class="line-number">81</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"
-test 4: wraparound"</span>);</span></span><span class="code-line" data-line="82"><span class="line-number">82</span><span class="line-code">    <span class="tok-ident">ship_x</span> = <span class="tok-number">11'd318</span>;</span></span><span class="code-line" data-line="83"><span class="line-number">83</span><span class="line-code">    <span class="tok-ident">ship_y</span> = <span class="tok-number">11'd120</span>;</span></span><span class="code-line" data-line="84"><span class="line-number">84</span><span class="line-code">    <span class="tok-ident">bullet_vel</span> = <span class="tok-number">8'b0100_0000</span>; <span class="tok-comment">//add 4 to vx and keep vy at zero</span></span></span><span class="code-line" data-line="85"><span class="line-number">85</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="86"><span class="line-number">86</span><span class="line-code">    <span class="tok-ident">shoot_pulse</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="87"><span class="line-number">87</span><span class="line-code">    #<span class="tok-number">79.36</span>;</span></span><span class="code-line" data-line="88"><span class="line-number">88</span><span class="line-code">    <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>; </span></span><span class="code-line" data-line="89"><span class="line-number">89</span><span class="line-code">    <span class="tok-ident">shoot_pulse</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="90"><span class="line-number">90</span><span class="line-code">    #<span class="tok-number">79.36</span>;</span></span><span class="code-line" data-line="91"><span class="line-number">91</span><span class="line-code"></span></span><span class="code-line" data-line="92"><span class="line-number">92</span><span class="line-code">    <span class="tok-system">$display</span>(<span class="tok-string">"just spawned bullet position: bullet_x=%d"</span>, <span class="tok-ident">bullet_x</span>);</span></span><span class="code-line" data-line="93"><span class="line-number">93</span><span class="line-code"></span></span><span class="code-line" data-line="94"><span class="line-number">94</span><span class="line-code">    <span class="tok-keyword">repeat</span>(<span class="tok-number">5</span>) <span class="tok-keyword">begin</span></span></span><span class="code-line" data-line="95"><span class="line-number">95</span><span class="line-code">        <span class="tok-ident">frame_tick</span> = <span class="tok-number">1</span>;</span></span><span class="code-line" data-line="96"><span class="line-number">96</span><span class="line-code">        #<span class="tok-number">79.36</span>;</span></span><span class="code-line" data-line="97"><span class="line-number">97</span><span class="line-code">        <span class="tok-ident">frame_tick</span> = <span class="tok-number">0</span>;</span></span><span class="code-line" data-line="98"><span class="line-number">98</span><span class="line-code">        #<span class="tok-number">79.36</span>;</span></span><span class="code-line" data-line="99"><span class="line-number">99</span><span class="line-code">        <span class="tok-system">$display</span>(<span class="tok-string">"wraparound test: bullet_x=%d, active=%b"</span>, <span class="tok-ident">bullet_x</span>, <span class="tok-ident">bullet_active</span>);</span></span><span class="code-line" data-line="100"><span class="line-number">100</span><span class="line-code">    <span class="tok-keyword">end</span></span></span><span class="code-line" data-line="101"><span class="line-number">101</span><span class="line-code"></span></span><span class="code-line" data-line="102"><span class="line-number">102</span><span class="line-code">    #<span class="tok-number">1000</span>;</span></span><span class="code-line" data-line="103"><span class="line-number">103</span><span class="line-code">    <span class="tok-system">$finish</span>;</span></span><span class="code-line" data-line="104"><span class="line-number">104</span><span class="line-code"><span class="tok-keyword">end</span></span></span><span class="code-line" data-line="105"><span class="line-number">105</span><span class="line-code"></span></span><span class="code-line" data-line="106"><span class="line-number">106</span><span class="line-code"><span class="tok-keyword">endmodule</span></span></span></code></pre>
+logic signed [10:0] bullet_x_reg;
+logic signed [10:0] bullet_y_reg;
+logic signed [3:0] bullet_vx;
+logic signed [3:0] bullet_vy;
+logic bullet_active_reg;
+logic [6:0] bullet_lifetime;
 
-        <textarea class="code-raw" data-code-raw aria-hidden="true" tabindex="-1">`timescale 1ns/1ps
+assign bullet_x = bullet_x_reg;
+assign bullet_y = bullet_y_reg;
+assign bullet_active = bullet_active_reg;
+
+always_ff @(posedge clk or posedge rst) begin
+    if (rst) begin
+        bullet_active_reg &lt;= 1&#x27;b0;
+        bullet_x_reg &lt;= 11&#x27;d0;
+        bullet_y_reg &lt;= 11&#x27;d0;
+        bullet_vx &lt;= 4&#x27;d0;
+        bullet_vy &lt;= 4&#x27;d0;
+        bullet_lifetime &lt;= 7&#x27;d0;
+    end
+    else if (frame_tick) begin
+        if (shoot_pulse &amp;&amp; !bullet_active_reg) begin
+            bullet_x_reg &lt;= ship_x;
+            bullet_y_reg &lt;= ship_y;
+            bullet_vx &lt;= {{{bullet_vel[7]}}, bullet_vel[7:4]};
+            bullet_vy &lt;= {{{bullet_vel[3]}}, bullet_vel[3:0]};
+            bullet_active_reg &lt;= 1&#x27;b1;
+            bullet_lifetime &lt;= 7&#x27;d120;
+        end
+
+        else if (bullet_active_reg) begin
+            bullet_x_reg &lt;= bullet_x_reg + bullet_vx;
+            bullet_y_reg &lt;= bullet_y_reg + bullet_vy;
+            bullet_lifetime &lt;= bullet_lifetime - 1;
+
+            //x
+            if (bullet_x_reg + bullet_vx &gt; 319)
+                bullet_x_reg &lt;= (bullet_x_reg + bullet_vx) - 320;
+            else if (bullet_x_reg + bullet_vx &lt; 0)
+                bullet_x_reg &lt;= (bullet_x_reg + bullet_vx) + 320;
+
+            //y
+            if (bullet_y_reg + bullet_vy &gt; 239)
+                bullet_y_reg &lt;= (bullet_y_reg + bullet_vy) - 240;
+            else if (bullet_y_reg + bullet_vy &lt; 0)
+                bullet_y_reg &lt;= (bullet_y_reg + bullet_vy) + 240;
+
+            //despawn
+            if (bullet_lifetime == 0)
+                bullet_active_reg &lt;= 1&#x27;b0;
+        end
+    end
+end
+
+endmodule</textarea>
+        <textarea class="code-raw" data-code-source="bullet-tb" data-kind="Testbench" aria-hidden="true">`timescale 1ns/1ps
 
 module bullet_tb;
 
@@ -1015,80 +1197,78 @@ initial begin
     forever #36.98 clk = ~clk;
 end
 
-initial begin 
-    $dumpfile("bullet.vcd");
+initial begin
+    $dumpfile(&quot;bullet.vcd&quot;);
     $dumpvars(0, bullet_tb);
 
     rst = 1;
     frame_tick = 0;
     shoot_pulse = 0;
-    ship_x = 11'd160;
-    ship_y = 11'd120;
-    bullet_vel = 8'b0010_1110; //vx = +2, vy = -2 
+    ship_x = 11&#x27;d160;
+    ship_y = 11&#x27;d120;
+    bullet_vel = 8&#x27;b0010_1110;
 
     #100;
-    rst = 0; 
-    #100; 
+    rst = 0;
+    #100;
 
-    //testcase 1: spawn bullet
-    $display("test 1: spawn bullet at center");
-    shoot_pulse = 1;    
+    $display(&quot;test 1: spawn bullet at center&quot;);
+    shoot_pulse = 1;
     frame_tick = 1;
     #79.36;
     frame_tick = 0;
     shoot_pulse = 0;
     #79.36;
 
-    repeat(10) begin 
+    repeat(10) begin
         #79.36;
-        frame_tick = 1; 
-        $display("frame: bullet_x = %d, bullet_y = %d, active = %b", bullet_x, bullet_y, bullet_active);
+        frame_tick = 1;
+        $display(&quot;frame: bullet_x = %d, bullet_y = %d, active = %b&quot;, bullet_x, bullet_y, bullet_active);
     end
 
-    //testcase 2: try to spawn while active
-    $display("
-test 2: spawning while bullet is active");
-    $display("before spawn attempt: bullet_x = %d, bullet_y = %d, active = %b", bullet_x, bullet_y, bullet_active);
-    shoot_pulse = 1; 
-    frame_tick = 1; 
+    $display(&quot;
+test 2: spawning while bullet is active&quot;);
+    $display(&quot;before spawn attempt: bullet_x = %d, bullet_y = %d, active = %b&quot;, bullet_x, bullet_y, bullet_active);
+    shoot_pulse = 1;
+    frame_tick = 1;
     #79.36;
-    frame_tick = 0; 
+    frame_tick = 0;
     shoot_pulse = 0;
     #79.36;
 
-    $display("after spawn attempt: bullet_x = %d, bullet_y = %d, active = %b", bullet_x, bullet_y, bullet_active);
-    $display("expected: bullet is still moving, not reset to ship pos");
+    $display(&quot;after spawn attempt: bullet_x = %d, bullet_y = %d, active = %b&quot;, bullet_x, bullet_y, bullet_active);
+    $display(&quot;expected: bullet is still moving, not reset to ship pos&quot;);
 
-    $display("
-test 3: lifetime of bullet to timeout");
-    repeat(115) begin 
-        frame_tick = 1; 
+    $display(&quot;
+test 3: lifetime of bullet to timeout&quot;);
+    repeat(115) begin
+        frame_tick = 1;
         #79.36;
         frame_tick = 0;
         #79.36;
     end
-    $display("after 125 frames: bullet_active=%b", bullet_active);  
+    $display(&quot;after 125 frames: bullet_active=%b&quot;, bullet_active);
 
-    $display("
-test 4: wraparound");
-    ship_x = 11'd318;
-    ship_y = 11'd120;
-    bullet_vel = 8'b0100_0000; //add 4 to vx and keep vy at zero
+    $display(&quot;
+test 4: wraparound&quot;);
+    ship_x = 11&#x27;d318;
+    ship_y = 11&#x27;d120;
+    bullet_vel = 8&#x27;b0100_0000;
     frame_tick = 1;
     shoot_pulse = 1;
     #79.36;
-    frame_tick = 0; 
+    frame_tick = 0;
     shoot_pulse = 0;
     #79.36;
 
-    $display("just spawned bullet position: bullet_x=%d", bullet_x);
+    $display(&quot;just spawned bullet position: bullet_x=%d&quot;, bullet_x);
 
     repeat(5) begin
         frame_tick = 1;
         #79.36;
         frame_tick = 0;
         #79.36;
-        $display("wraparound test: bullet_x=%d, active=%b", bullet_x, bullet_active);
+        $display(&quot;wraparound test: bullet_x=%d, active=%b&quot;, bullet_x, bullet_active);
     end
 
     #1000;
@@ -1096,32 +1276,28 @@ test 4: wraparound");
 end
 
 endmodule</textarea>
-
         <div class="vscode-statusbar">
-          <span>SystemVerilog</span>
-          <span>UTF-8</span>
+          <span>SystemVerilog</span><span data-code-kind>RTL</span><span>UTF-8</span>
         </div>
       </div>
-
+      <p class="code-caption">
+        <code>bullet.sv</code> shows the taped-out RTL; <code>bullet_tb.sv</code>
+        shows the module-level testbench used for spawning, motion, lifetime, and wraparound verification.
+      </p>
 
       <figure class="media-block">
-        <img
-          src="images/atari/bulletwaveform.png"
-          alt="Projectile verification waveform"
-        >
+        <img src="images/atari/bulletwaveform.png" alt="Projectile verification waveform">
         <figcaption class="media-caption">
-          Projectile verification waveform generated from the testbench above.
+          Projectile verification waveform generated from <code>bullet_tb.sv</code>.
         </figcaption>
       </figure>
     </section>
-
-
-    <section class="content-section reveal">
+<section class="content-section reveal">
       <h2>FPGA emulation</h2>
 
       <p>
         Prior to tapeout, the design was validated on custom iCE40HX FPGA
-        hardware provided for the course. We programmed the FPGA with the game
+        hardware provided by the program. We programmed the FPGA with the game
         design and used a VGA breakout board to connect directly to a monitor,
         allowing us to test real gameplay behavior before committing the design
         to silicon.
@@ -1142,8 +1318,10 @@ endmodule</textarea>
       <h2>Development progress</h2>
 
       <p>
-        FPGA emulation let us validate the game incrementally as additional
-        gameplay systems were integrated.
+        FPGA emulation let us validate gameplay systems independently before
+        bringing them together. These clips progress from ship and projectile
+        behavior, to asteroid behavior, and finally to the combined gameplay
+        implementation.
       </p>
 
       <div class="video-slideshow">
@@ -1152,7 +1330,7 @@ endmodule</textarea>
             controls
             playsinline
             preload="metadata"
-            src="images/atari/shipanbulletvid.mov"
+            src="images/atari/shipandbulletvid.MOV"
             data-video-player
           ></video>
         </div>
@@ -1167,7 +1345,7 @@ endmodule</textarea>
             class="slideshow-tab is-active"
             type="button"
             data-video-slide
-            data-video="images/atari/shipanbulletvid.mov"
+            data-video="images/atari/shipandbulletvid.MOV"
             data-title="Ship + Bullet"
           >
             Ship + Bullet
@@ -1177,60 +1355,59 @@ endmodule</textarea>
             class="slideshow-tab"
             type="button"
             data-video-slide
-            data-video="images/atari/shipbulletasteroidsvid.MOV"
-            data-title="Ship + Bullet + Asteroids"
+            data-video="images/atari/asteroidsvideo.mp4"
+            data-title="Asteroid behavior"
           >
-            + Asteroids
+            Asteroids
           </button>
 
           <button
             class="slideshow-tab"
             type="button"
             data-video-slide
-            data-video="images/atari/asteroidsvideo.mp4"
-            data-title="Asteroids integration"
+            data-video="images/atari/shipbulletasteroidsvid.MOV"
+            data-title="Combined gameplay"
           >
-            Asteroids
+            Combined
           </button>
         </div>
       </div>
     </section>
 
-    <!--
-      Add this section once tapeout details are confirmed:
+    
 
-      <section class="content-section reveal">
-        <h2>Tapeout</h2>
-        <p>
-          Add foundry / shuttle / process / submission details here once
-          confirmed by your mentor.
-        </p>
-      </section>
-    -->
-
+    
     <section class="content-section reveal">
-      <h2>Physical implementation</h2>
+      <h2>Tapeout</h2>
 
       <p>
-        After RTL and FPGA validation, the complete design was taken through
-        the OpenLane2 physical-design flow to produce the final GDSII layout
-        for tapeout.
+        After RTL and FPGA validation, the design was taken through the
+        RTL-to-GDSII physical-design flow and hardened as a final ASIC macro.
+        The completed macro was integrated into Purdue NEBULA,
+        Purdue's Caravel-based multi-project environment for combining student
+        designs into a shared chip.
+      </p>
+
+      <p>
+        The completed NEBULA chip was submitted through a
+        ChipFoundry university shuttle for fabrication by
+        SkyWater using the open-source
+        SKY130A 130 nm process.
       </p>
 
       <figure class="media-block wide">
-        <img
-          src="images/atari/gdsii.png"
-          alt="Final GDSII layout for the Atari Asteroids ASIC"
-        >
+        <img src="images/atari/gdsii.png" alt="Final GDSII layout for the Atari Asteroids ASIC">
         <figcaption class="media-caption">
-          Final GDSII layout generated through the RTL-to-GDSII flow.
+          Final hardened GDSII macro submitted as part of the Purdue NEBULA tapeout.
         </figcaption>
       </figure>
 
       <p class="stat-line">
-        8,021 standard cells · 300 × 400 μm die · ~50% core utilization · DRC/LVS passed
+        8,021 standard cells · 300 × 400 μm die · ~50% core utilization ·
+        DRC/LVS passed · SKY130A 130 nm
       </p>
     </section>
+
 
     <section class="content-section reveal">
       <h2>Final result</h2>
@@ -1406,69 +1583,101 @@ endmodule</textarea>
       });
     });
   });
-    /* Interactive source-code blocks. */
-    document.querySelectorAll("[data-code-embed]").forEach((embed) => {
-      const lines = Array.from(embed.querySelectorAll(".code-line"));
-      const copyButton = embed.querySelector("[data-copy-code]");
-      const rawCode = embed.querySelector("[data-code-raw]");
+    /* Interactive VS Code-style source viewers. */
+    document.querySelectorAll("[data-code-viewer]").forEach((viewer) => {
+      const tabs = Array.from(viewer.querySelectorAll("[data-code-tab]"));
+      const sources = Array.from(viewer.querySelectorAll("[data-code-source]"));
+      const output = viewer.querySelector("[data-code-output]");
+      const copyButton = viewer.querySelector("[data-copy-code]");
+      const kind = viewer.querySelector("[data-code-kind]");
+      let activeKey = tabs[0]?.dataset.codeTab || "";
 
-      let anchorIndex = null;
-
-      function clearSelection() {
-        lines.forEach((line) => line.classList.remove("is-selected"));
+      function escapeHtml(value) {
+        return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       }
 
-      lines.forEach((line, index) => {
-        line.addEventListener("click", (event) => {
-          if (event.shiftKey && anchorIndex !== null) {
-            clearSelection();
+      function highlight(line) {
+        let value = escapeHtml(line);
+        value = value.replace(/(\/\/.*)$/g, '<span class="tok-comment">$1</span>');
+        value = value.replace(/(&quot;.*?&quot;)/g, '<span class="tok-string">$1</span>');
+        value = value.replace(/\b(module|endmodule|input|output|logic|signed|assign|always_ff|posedge|negedge|begin|end|if|else|repeat|initial|forever)\b/g, '<span class="tok-keyword">$1</span>');
+        value = value.replace(/(\$[A-Za-z_]\w*)/g, '<span class="tok-system">$1</span>');
+        value = value.replace(/(`\w+)/g, '<span class="tok-directive">$1</span>');
+        return value || " ";
+      }
 
-            const start = Math.min(anchorIndex, index);
-            const end = Math.max(anchorIndex, index);
+      function bindSelection() {
+        const lines = Array.from(output.querySelectorAll(".code-line"));
+        let anchor = null;
+        const clear = () => lines.forEach((line) => line.classList.remove("is-selected"));
 
-            for (let i = start; i <= end; i += 1) {
-              lines[i].classList.add("is-selected");
+        lines.forEach((line, index) => {
+          line.addEventListener("click", (event) => {
+            if (event.shiftKey && anchor !== null) {
+              clear();
+              const start = Math.min(anchor, index);
+              const end = Math.max(anchor, index);
+              for (let i = start; i <= end; i += 1) lines[i].classList.add("is-selected");
+              return;
             }
 
-            return;
-          }
-
-          const wasSelected = line.classList.contains("is-selected");
-          clearSelection();
-
-          if (!wasSelected) {
-            line.classList.add("is-selected");
-            anchorIndex = index;
-          } else {
-            anchorIndex = null;
-          }
+            const selected = line.classList.contains("is-selected");
+            clear();
+            if (!selected) {
+              line.classList.add("is-selected");
+              anchor = index;
+            } else {
+              anchor = null;
+            }
+          });
         });
-      });
+      }
+
+      function showFile(key) {
+        const source = sources.find((item) => item.dataset.codeSource === key);
+        if (!source) return;
+
+        activeKey = key;
+        tabs.forEach((tab) => tab.classList.toggle("is-active", tab.dataset.codeTab === key));
+
+        const lines = source.value.replace(/\r\n/g, "\n").split("\n");
+        output.innerHTML = lines.map((line, index) =>
+          `<span class="code-line" data-line="${index + 1}">` +
+          `<span class="line-number">${index + 1}</span>` +
+          `<span class="line-code">${highlight(line)}</span>` +
+          `</span>`
+        ).join("");
+
+        if (kind) kind.textContent = source.dataset.kind || "Source";
+        bindSelection();
+      }
+
+      tabs.forEach((tab) => tab.addEventListener("click", () => showFile(tab.dataset.codeTab)));
 
       copyButton?.addEventListener("click", async () => {
-        const originalLabel = copyButton.textContent;
+        const source = sources.find((item) => item.dataset.codeSource === activeKey);
+        if (!source) return;
 
+        const old = copyButton.textContent;
         try {
-          await navigator.clipboard.writeText(rawCode.value);
-          copyButton.textContent = "Copied";
-        } catch (error) {
-          rawCode.style.position = "fixed";
-          rawCode.style.opacity = "1";
-          rawCode.style.pointerEvents = "auto";
-          rawCode.select();
+          await navigator.clipboard.writeText(source.value);
+        } catch {
+          source.style.position = "fixed";
+          source.style.opacity = "1";
+          source.style.pointerEvents = "auto";
+          source.select();
           document.execCommand("copy");
-          rawCode.style.position = "absolute";
-          rawCode.style.opacity = "0";
-          rawCode.style.pointerEvents = "none";
-          copyButton.textContent = "Copied";
+          source.style.position = "absolute";
+          source.style.opacity = "0";
+          source.style.pointerEvents = "none";
         }
 
-        window.setTimeout(() => {
-          copyButton.textContent = originalLabel;
-        }, 1200);
+        copyButton.textContent = "Copied";
+        setTimeout(() => copyButton.textContent = old, 1200);
       });
-    });
 
+      showFile(activeKey);
+    });
 </script>
 </body>
 </html>
